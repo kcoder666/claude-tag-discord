@@ -1,0 +1,18 @@
+services:
+  claude-tag:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATA_DIR: /data
+    volumes:
+      - claude-tag-data:/data
+    ports:
+      - "127.0.0.1:8787:8787"   # hosted pages; put a reverse proxy in front and set PUBLIC_BASE_URL
+    # bubblewrap needs user namespaces. If the sandbox fails to start, uncomment:
+    # security_opt:
+    #   - seccomp=unconfined
+    #   - apparmor=unconfined
+
+volumes:
+  claude-tag-data:

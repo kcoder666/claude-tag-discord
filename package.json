@@ -1,0 +1,50 @@
+{
+  "name": "claude-tag-discord",
+  "version": "1.0.0",
+  "description": "Claude Tag for Discord: tag @Claude into any channel or thread and hand it real work. A self-hosted clone of Anthropic's Claude Tag (Slack), built on the Claude Agent SDK.",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "register-commands": "tsx src/discord/register.ts"
+  },
+  "keywords": [
+    "discord",
+    "claude",
+    "claude-agent-sdk",
+    "bot",
+    "ai-agent"
+  ],
+  "author": "kcoder666",
+  "license": "MIT",
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "^11.18.0",
+      "onFail": "download"
+    }
+  },
+  "type": "module",
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.3.283",
+    "croner": "^10.0.1",
+    "discord.js": "^14.27.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.3",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.2"
+  },
+  "engines": {
+    "node": ">=22.13"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kcoder666/claude-tag-discord.git"
+  }
+}
