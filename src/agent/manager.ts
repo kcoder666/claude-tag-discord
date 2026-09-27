@@ -216,7 +216,9 @@ export class SessionManager {
         log.warn(`connection ${c.name} unavailable`, e);
       }
     }
-    const env = buildSessionEnv(credential, { ...scope.env, ...connectionEnv });
+    const tmp = path.join(cwd, ".tmp");
+    fs.mkdirSync(tmp, { recursive: true });
+    const env = buildSessionEnv(credential, { ...scope.env, ...connectionEnv, TMPDIR: tmp, TMP: tmp, TEMP: tmp });
 
     if (kind !== "channel" && freshDir && scope.setupScripts.length) {
       const failure = await this.runSetupScripts(scope, cwd, buildSessionEnv({ kind: "local-login", owner: "bot" }, scope.env));
@@ -339,6 +341,7 @@ export class SessionManager {
   }
 
   private async onTurnEnd(live: Live, r: TurnResult): Promise<void> {
+    log.info(`[${live.key}] turn ended${r.isError ? " with an error" : ""} ($${r.turnCostUsd.toFixed(4)}, ${r.model}${r.morePending ? ", more queued" : ""})`);
     if (!r.morePending) this.stopTyping(live);
     this.recordTurnUsage(live, r);
 
@@ -542,6 +545,7 @@ export class SessionManager {
     }
     if (mentioned) void msg.react("👀").catch(() => {});
     const content = await messageContent(msg, this.botId, { mentioned, cwd: live.cwd, preamble });
+    log.info(`[${live.key}] message from ${msg.author.username}${mentioned ? " (mention)" : ""}${live.agent.busy ? ", folded into the running turn" : ""}`);
     await this.deliver(live, content, msg.author.id);
   }
 

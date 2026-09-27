@@ -35,6 +35,9 @@ export interface PostOptions {
   quiet?: boolean;
 }
 
+/** Discord rejects webhook names containing "discord" or "clyde". */
+const WEBHOOK_NAME = "claude-tag";
+
 /** Messages longer than this are attached as a Markdown file instead of split into many messages. */
 const ATTACH_OVER = 8000;
 
@@ -64,8 +67,8 @@ export class Poster {
         }
         const p = parent as TextChannel | NewsChannel | ForumChannel | MediaChannel;
         const existing = await p.fetchWebhooks();
-        hook = existing.find((w) => w.owner?.id === this.client.user?.id && w.name === "claude-tag-discord")
-          ?? (await p.createWebhook({ name: "claude-tag-discord", avatar: this.client.user?.displayAvatarURL() }));
+        hook = existing.find((w) => w.owner?.id === this.client.user?.id && w.name === WEBHOOK_NAME)
+          ?? (await p.createWebhook({ name: WEBHOOK_NAME, avatar: this.client.user?.displayAvatarURL() }));
         this.hooks.set(parent.id, hook);
       } catch (e) {
         log.warn(`webhooks unavailable in #${parent.name}; posting as the bot`, e);

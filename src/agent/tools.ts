@@ -150,24 +150,6 @@ export function buildTagServer(host: ToolHost): McpSdkServerConfigWithInstance {
 
     // ── messaging and files ──
     tool(
-      "post_message",
-      "Post a short interim update in the current conversation while you keep working. Your final answer is posted automatically; don't repeat it here.",
-      { text: z.string().min(1).max(4000) },
-      async ({ text }) => guard(async () => (await host.postMessage(text), "Posted.")),
-    ),
-    tool(
-      "attach_file",
-      "Upload a file from your workspace to the conversation (reports, CSVs, images, charts, patches). Max 25MB.",
-      { path: z.string(), name: z.string().optional(), comment: z.string().max(1500).optional() },
-      async (a) => guard(async () => (await host.attachFile(a.path, a.name, a.comment), "Attached.")),
-    ),
-    tool(
-      "publish_page",
-      "Host a self-contained HTML page (inline CSS/JS) at an unguessable URL and get the link. Republish with the same title to update it.",
-      { title: z.string().min(1).max(100), html: z.string().min(1) },
-      async (a) => guard(() => host.publishPage(a.html, a.title)),
-    ),
-    tool(
       "post_to_channel",
       "Post a message to another channel, only when someone asked for it. Allowed only into public channels, and not from private channels. From a DM, the person must approve before it posts. An attribution line is added.",
       { channel: z.string().describe("Channel id, <#id> mention, or #name"), text: z.string().min(1).max(3500) },
@@ -209,11 +191,34 @@ export function buildTagServer(host: ToolHost): McpSdkServerConfigWithInstance {
       { on: z.boolean() },
       async ({ on }) => guard(() => host.setRespondAutomatically(on)),
     ),
-    tool("set_task_title", "Rename this working session (2–5 words). Shown as your name in the thread.", { title: z.string().min(1).max(60) }, async ({ title }) =>
-      guard(async () => (await host.setTaskTitle(title), "Renamed."))),
   ];
 
-  if (host.kind === "channel") {
+  if (host.kind !== "channel") {
+    // Posting into the conversation itself: task and DM sessions only. The channel session answers
+    // through respond_in_thread, so a stray post can't land at the top level of the channel.
+    tools.push(
+    tool(
+      "post_message",
+      "Post a short interim update in the current conversation while you keep working. Your final answer is posted automatically; don't repeat it here.",
+      { text: z.string().min(1).max(4000) },
+      async ({ text }) => guard(async () => (await host.postMessage(text), "Posted.")),
+    ),
+    tool(
+      "attach_file",
+      "Upload a file from your workspace to the conversation (reports, CSVs, images, charts, patches). Max 25MB.",
+      { path: z.string(), name: z.string().optional(), comment: z.string().max(1500).optional() },
+      async (a) => guard(async () => (await host.attachFile(a.path, a.name, a.comment), "Attached.")),
+    ),
+    tool(
+      "publish_page",
+      "Host a self-contained HTML page (inline CSS/JS) at an unguessable URL and get the link. Republish with the same title to update it.",
+      { title: z.string().min(1).max(100), html: z.string().min(1) },
+      async (a) => guard(() => host.publishPage(a.html, a.title)),
+    ),
+      tool("set_task_title", "Rename this working session (2–5 words). Shown as your name in the thread.", { title: z.string().min(1).max(60) }, async ({ title }) =>
+        guard(async () => (await host.setTaskTitle(title), "Renamed."))),
+    );
+  } else {
     tools.push(
       tool(
         "respond_in_thread",
@@ -246,7 +251,7 @@ export function buildTagServer(host: ToolHost): McpSdkServerConfigWithInstance {
     );
   }
 
-  return createSdkMcpServer({ name: TAG_SERVER, version: "1.0.0", tools });
+  return createSdkMcpServer({ name: TAG_SERVER, version: "1.0.0", tools, alwaysLoad: true });
 }
 
 /** Tool names the channel session uses to act on a message (used to guarantee mentions get a response). */

@@ -41,6 +41,7 @@ async function main(): Promise<void> {
   const scheduler = new RoutineScheduler((r, trigger) => manager.fireRoutine(r, trigger));
   manager.scheduler = scheduler;
   registerHandlers(client, manager);
+  client.on(Events.GuildCreate, (g) => log.info(`Joined server "${g.name}" (${g.id}).`));
 
   client.once(Events.ClientReady, async (c) => {
     log.info(`Logged in as ${c.user.tag} in ${c.guilds.cache.size} server(s).`);
